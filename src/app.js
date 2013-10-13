@@ -10,7 +10,6 @@ var path = require('path');
 
 var prettified = require('prettified');
 var express = require('express');
-
 var nor_express = require('nor-express');
 
 var debug = require('./debug.js');
@@ -18,28 +17,28 @@ var debug = require('./debug.js');
 var main = {};
 main.app = express();
 main.server = http.createServer(main.app);
+main.routes = {};
 
-// Routes should be last since we need main.passport for example!
-main.routes = nor_express.routes.load(__dirname+'/routes');
+main.routes.sysrestd = nor_express.routes.load(__dirname+'/routes');
 
-// all environments
+// Setup Express settings
 main.app.set('host', config.host || process.env.HOST || '127.0.0.1');
 main.app.set('port', config.port || process.env.PORT || 8443);
 
+// Setup express middlewares
 main.app.use(express.logger('dev'));
 main.app.use(express.methodOverride());
 main.app.use(main.app.router);
 
-/* Primary error handler */
+// Setup primary error handler
 main.app.use(function(err, req, res, next) {
 	console.error('Error at ' + __filename + ':' + debug.__line + ': ');
 	nor_express.plugins.error(err)(req, res);
 });
 
-/* Secondary error handler if other handlers fail */
+// Setup secondary error handler if other handlers fail
 main.app.use(function(err, req, res, next) {
-	console.error('Error at ' + __filename + ':' + debug.__line + ': ');
-	prettified.errors.print(err);
+	console.error('Unexpected error at ' + __filename + ':' + debug.__line + ': ' + util.inspect(err) );
 	res.send(500, {'error':'Unexpected Internal Error'} );
 });
 
