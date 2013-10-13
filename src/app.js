@@ -32,14 +32,21 @@ main.app.use(main.app.router);
 
 // Setup primary error handler
 main.app.use(function(err, req, res, next) {
-	console.error('Error at ' + __filename + ':' + debug.__line + ': ');
-	nor_express.plugins.error(err)(req, res);
+	if(err instanceof HTTPError) {
+		Object.keys(err.headers).forEach(function(key) {
+			res.header(key, err.headers[key]);
+		});
+		res.send(err.code, {'error':''+err.message, 'code':err.code} );
+	} else {
+		console.error('Error at ' + __filename + ':' + debug.__line + ': ');
+		res.send(500, {'error':'Internal Server Error','code':500} );
+	}
 });
 
 // Setup secondary error handler if other handlers fail
 main.app.use(function(err, req, res, next) {
 	console.error('Unexpected error at ' + __filename + ':' + debug.__line + ': ' + util.inspect(err) );
-	res.send(500, {'error':'Unexpected Internal Error'} );
+	res.send(500, {'error':'Unexpected Internal Error', 'code':500} );
 });
 
 /* Enable regular expressions for validating params */
@@ -69,7 +76,7 @@ nor_express.routes.setup(main.app, main.routes);
 
 // Setup server
 main.server.listen(main.app.get('port'), main.app.get('host'), function(){
-	console.log('sysrestd started on ' + main.app.get('host') + ':' + main.app.get('port'));
+	console.log('[sysrestd] started on ' + main.app.get('host') + ':' + main.app.get('port'));
 });
 
 /* EOF */
