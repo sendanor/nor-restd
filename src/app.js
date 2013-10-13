@@ -9,6 +9,7 @@ var path = require('path');
 var prettified = require('prettified');
 var express = require('express');
 var nor_express = require('nor-express');
+var HTTPError = nor_express.HTTPError;
 
 var debug = require('./debug.js');
 
@@ -21,31 +22,15 @@ main.routes.sysrestd = nor_express.routes.load(__dirname+'/routes');
 
 // Setup Express settings
 main.app.set('host', config.host || process.env.HOST || '127.0.0.1');
-main.app.set('port', config.port || process.env.PORT || 8443);
+main.app.set('port', config.port || process.env.PORT || 3000);
 
 // Setup express middlewares
 main.app.use(express.logger('dev'));
 main.app.use(express.methodOverride());
 main.app.use(main.app.router);
 
-// Setup primary error handler
-main.app.use(function(err, req, res, next) {
-	if(err instanceof HTTPError) {
-		Object.keys(err.headers).forEach(function(key) {
-			res.header(key, err.headers[key]);
-		});
-		res.send(err.code, {'error':''+err.message, 'code':err.code} );
-	} else {
-		console.error('Error at ' + __filename + ':' + debug.__line + ': ');
-		res.send(500, {'error':'Internal Server Error','code':500} );
-	}
-});
-
-// Setup secondary error handler if other handlers fail
-main.app.use(function(err, req, res, next) {
-	console.error('Unexpected error at ' + __filename + ':' + debug.__line + ': ' + util.inspect(err) );
-	res.send(500, {'error':'Unexpected Internal Error', 'code':500} );
-});
+// Setup routes automatically
+nor_express.routes.setup(main.app, main.routes);
 
 /* Enable regular expressions for validating params */
 main.app.param(function(name, fn){
@@ -69,8 +54,28 @@ main.app.param(function(name, fn){
 //main.app.param('bid_id', /^\d+$/);
 //main.app.param('token', /^[a-zA-Z0-9]+$/);
 
-// Setup routes automatically
-nor_express.routes.setup(main.app, main.routes);
+main.app.use(function(req, res, next) {
+	throw new HTTPError(404, "Not Found");
+});
+
+// Setup primary error handler
+main.app.use(function(err, req, res, next) {
+	if(err instanceof HTTPError) {
+		Object.keys(err.headers).forEach(function(key) {
+			res.header(key, err.headers[key]);
+		});
+		res.send(err.code, {'error':''+err.message, 'code':err.code} );
+	} else {
+		console.error('Error at ' + __filename + ':' + debug.__line + ': ');
+		res.send(500, {'error':'Internal Server Error','code':500} );
+	}
+});
+
+// Setup secondary error handler if other handlers fail
+main.app.use(function(err, req, res, next) {
+	console.error('Unexpected error at ' + __filename + ':' + debug.__line + ': ' + util.inspect(err) );
+	res.send(500, {'error':'Unexpected Internal Error', 'code':500} );
+});
 
 // Setup server
 main.server.listen(main.app.get('port'), main.app.get('host'), function(){
