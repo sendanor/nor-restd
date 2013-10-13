@@ -1,6 +1,10 @@
 /* sysrestd -- The core app code */
 
-var config = {};
+var config = {
+	'proto': (process.env.PROTO === 'https') ? 'https' : 'http',
+	'host': process.env.HOST || '127.0.0.1',
+	'port': process.env.PORT || 3000
+};
 
 var util = require('util');
 var http = require('http');
@@ -15,18 +19,33 @@ var debug = require('./debug.js');
 
 var main = {};
 main.app = express();
-main.server = http.createServer(main.app);
-main.routes = {};
 
-main.routes.sysrestd = nor_express.routes.load(__dirname+'/routes');
+main.server = http.createServer(main.app);
+
+var app_routes = nor_express.routes.load(__dirname+'/routes');
+
+main.routes = {
+	'app': app_routes,
+	'GET': function(req, res) {
+		return {'app': {'$ref': req.hostref + '/app'}};
+	}
+};
+
 
 // Setup Express settings
-main.app.set('host', config.host || process.env.HOST || '127.0.0.1');
-main.app.set('port', config.port || process.env.PORT || 3000);
+main.app.set('proto', config.proto);
+main.app.set('host', config.host);
+main.app.set('port', config.port);
 
 // Setup express middlewares
 main.app.use(express.logger('dev'));
 main.app.use(express.methodOverride());
+
+main.app.use(function(req, res, next) {
+	req.hostref = config.proto + '://' + ( req.headers && req.headers.host );
+	next();
+});
+
 main.app.use(main.app.router);
 
 // Setup routes automatically
@@ -66,14 +85,14 @@ main.app.use(function(err, req, res, next) {
 		});
 		res.send(err.code, {'error':''+err.message, 'code':err.code} );
 	} else {
-		console.error('Error at ' + __filename + ':' + debug.__line + ': ');
+		prettified.errors.print(err);
 		res.send(500, {'error':'Internal Server Error','code':500} );
 	}
 });
 
 // Setup secondary error handler if other handlers fail
 main.app.use(function(err, req, res, next) {
-	console.error('Unexpected error at ' + __filename + ':' + debug.__line + ': ' + util.inspect(err) );
+	console.error('Unexpected error: ' + util.inspect(err) );
 	res.send(500, {'error':'Unexpected Internal Error', 'code':500} );
 });
 
