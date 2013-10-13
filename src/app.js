@@ -38,28 +38,26 @@ main.server = http.createServer(main.app);
 var app_routes = nor_express.routes.load(__dirname+'/routes');
 
 main.routes = {
-	'_service': app_routes,
 	'GET': function(req, res) {
 		var ret = {};
 		ret._service = {
 			'$ref': req.hostref + '/_service'
 		};
-		Object.keys(main.routes.modules).forEach(function(key) {
+		Object.keys(config.modules).forEach(function(key) {
 			ret[key] = {'$ref': req.hostref + '/'+key};
 		});
 		return ret;
 	},
-	'modules': {
-	}
+	'_service': app_routes
 };
 
 Object.keys(config.modules).forEach(function(key) {
 	var mod = require( config.modules[key] );
 	if(is.func(mod)) {
 		// FIXME: Implement support for module options
-		main.routes.modules[key] = mod();
+		main.routes[key] = mod();
 	} else {
-		main.routes.modules[key] = mod;
+		main.routes[key] = mod;
 	}
 });
 
