@@ -36,7 +36,9 @@ main.app = express();
 main.server = http.createServer(main.app);
 
 var app_routes = nor_express.routes.load(__dirname+'/routes');
+var app_params = {};
 
+// Setup local routes
 main.routes = {
 	'GET': function(req, res) {
 		var ret = {};
@@ -51,14 +53,40 @@ main.routes = {
 	'_service': app_routes
 };
 
-Object.keys(config.modules).forEach(function(key) {
-	var mod = require( config.modules[key] );
+// Setup routes from 3rd party modules
+Object.keys(config.modules).forEach(function(module_key) {
+	var mod = require( config.modules[module_key] );
+	var mod_instance, params, obj;
 	if(is.func(mod)) {
 		// FIXME: Implement support for module options
-		main.routes[key] = mod();
+		mod_instance = mod(/* opts */);
 	} else {
-		main.routes[key] = mod;
+		mod_instance = mod;
 	}
+	
+	if(is.obj(mod_instance[':params'])) {
+		params = mod_instance[':params'];
+	} else {
+		params = {};
+	}
+
+	Object.keys(params).forEach(function(key) {
+		if(app_params[key] !== undefined) {
+			// FIXME: Implement support for same keywords inside different modules
+			throw new TypeError("param (" + key + ") already defined at module " + app_params[key].module);
+		}
+		app_params[key] = {
+			module: ''+module_key,
+			value: params[key]
+		};
+	});
+
+	obj = {};
+	Object.keys(mod_instance).filter(function(k){ return k !== ':params'; }).forEach(function(key) {
+		obj[key] = mod_instance[key];
+	});
+
+	main.routes[module_key] = obj;
 });
 
 // Setup Express settings
@@ -98,10 +126,11 @@ main.app.param(function(name, fn){
 });
 
 // Setup named params in routes
-//main.app.param('item_id', /^\d+$/);
-//main.app.param('bid_id', /^\d+$/);
-//main.app.param('token', /^[a-zA-Z0-9]+$/);
+Object.keys(app_params).forEach(function(key) {
+	main.app.param(key, app_params[key].value);
+});
 
+// Default handler for requests
 main.app.use(function(req, res, next) {
 	throw new HTTPError(404, "Not Found");
 });
