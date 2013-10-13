@@ -3,8 +3,20 @@
 var config = {
 	'proto': (process.env.PROTO === 'https') ? 'https' : 'http',
 	'host': process.env.HOST || '127.0.0.1',
-	'port': process.env.PORT || 3000
+	'port': process.env.PORT || 3000,
+	'modules': process.env.MODULES ? JSON.parse(process.env.MODULES) : {}
 };
+
+/*
+ * config.modules is for example:
+ * ----
+ * {
+ *   'dns': 'nor-sysrestd-dns',
+ *   'web': 'nor-sysrestd-web',
+ *   'db': 'nor-sysrestd-db'
+ * }
+ * ----
+ */
 
 var util = require('util');
 var http = require('http');
@@ -27,10 +39,25 @@ var app_routes = nor_express.routes.load(__dirname+'/routes');
 main.routes = {
 	'app': app_routes,
 	'GET': function(req, res) {
-		return {'app': {'$ref': req.hostref + '/app'}};
+		var modules = {};
+		Object.keys(main.routes.modules).forEach(function(key) {
+			modules[key] = {'$ref': req.hostref + '/modules/'+key};
+		});
+		var ret = {
+			'app': {
+				'$ref': req.hostref + '/app'
+			},
+			'modules': modules
+		};
+		return ret;
+	},
+	'modules': {
 	}
 };
 
+Object.keys(config.modules).forEach(function(key) {
+	main.routes.modules[key] = require( config.modules[key] );
+});
 
 // Setup Express settings
 main.app.set('proto', config.proto);
