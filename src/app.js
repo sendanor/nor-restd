@@ -24,6 +24,7 @@ var path = require('path');
 
 var prettified = require('prettified');
 var express = require('express');
+var is = require('nor-is');
 var nor_express = require('nor-express');
 var HTTPError = nor_express.HTTPError;
 
@@ -37,18 +38,15 @@ main.server = http.createServer(main.app);
 var app_routes = nor_express.routes.load(__dirname+'/routes');
 
 main.routes = {
-	'app': app_routes,
+	'_service': app_routes,
 	'GET': function(req, res) {
-		var modules = {};
-		Object.keys(main.routes.modules).forEach(function(key) {
-			modules[key] = {'$ref': req.hostref + '/modules/'+key};
-		});
-		var ret = {
-			'app': {
-				'$ref': req.hostref + '/app'
-			},
-			'modules': modules
+		var ret = {};
+		ret._service = {
+			'$ref': req.hostref + '/_service'
 		};
+		Object.keys(main.routes.modules).forEach(function(key) {
+			ret[key] = {'$ref': req.hostref + '/'+key};
+		});
 		return ret;
 	},
 	'modules': {
@@ -56,7 +54,13 @@ main.routes = {
 };
 
 Object.keys(config.modules).forEach(function(key) {
-	main.routes.modules[key] = require( config.modules[key] );
+	var mod = require( config.modules[key] );
+	if(is.func(mod)) {
+		// FIXME: Implement support for module options
+		main.routes.modules[key] = mod();
+	} else {
+		main.routes.modules[key] = mod;
+	}
 });
 
 // Setup Express settings
