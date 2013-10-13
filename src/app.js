@@ -1,19 +1,47 @@
 /* sysrestd -- The core app code */
 
+var fs = require('nor-fs');
+function parse_env(key, def) {
+	key = ''+key;
+	if(typeof process.env[key] === 'undefined') {
+		return def;
+	}
+	var value = process.env[key];
+	if(value[0] === '@') {
+		value = fs.sync.readFile(value.substr(1), {"encoding":"utf8"});
+	}
+	return value;
+}
+
+function parse_json_env(key, def) {
+	return JSON.parse(parse_env(key, def));
+}
+
 var config = {
 	'proto': (process.env.PROTO === 'https') ? 'https' : 'http',
-	'host': process.env.HOST || '127.0.0.1',
-	'port': process.env.PORT || 3000,
-	'modules': process.env.MODULES ? JSON.parse(process.env.MODULES) : {}
+	'host': parse_env('HOST', '127.0.0.1'),
+	'port': parse_env('PORT', 3000),
+    'use': parse_json_env('USE', []),
+	'resources': parse_json_env('RESOURCES', {}),
+    'opts': parse_json_env('OPTS', {})
 };
 
+// FIXME: Implement persistant support for module options
+
 /*
- * config.modules is for example:
+ * config.use example:
+ * ----
+ * {"auth":"sysrestd-auth-apikey"}
+ * ----
+ */
+
+/*
+ * config.resources example:
  * ----
  * {
- *   'dns': 'nor-sysrestd-dns',
- *   'web': 'nor-sysrestd-web',
- *   'db': 'nor-sysrestd-db'
+ *   "dns": "nor-sysrestd-dns",
+ *   "web": "nor-sysrestd-web",
+ *   "db": "nor-sysrestd-db"
  * }
  * ----
  */
@@ -45,7 +73,7 @@ main.routes = {
 		ret._service = {
 			'$ref': req.hostref + '/_service'
 		};
-		Object.keys(config.modules).forEach(function(key) {
+		Object.keys(config.resources).forEach(function(key) {
 			ret[key] = {'$ref': req.hostref + '/'+key};
 		});
 		return ret;
@@ -53,13 +81,12 @@ main.routes = {
 	'_service': app_routes
 };
 
-// Setup routes from 3rd party modules
-Object.keys(config.modules).forEach(function(module_key) {
-	var mod = require( config.modules[module_key] );
+// Setup routes from 3rd party resources
+Object.keys(config.resources).forEach(function(module_key) {
+	var mod = require( config.resources[module_key] );
 	var mod_instance, params, obj;
 	if(is.func(mod)) {
-		// FIXME: Implement support for module options
-		mod_instance = mod(/* opts */);
+		mod_instance = mod(config.opts[module_key]);
 	} else {
 		mod_instance = mod;
 	}
@@ -72,7 +99,7 @@ Object.keys(config.modules).forEach(function(module_key) {
 
 	Object.keys(params).forEach(function(key) {
 		if(app_params[key] !== undefined) {
-			// FIXME: Implement support for same keywords inside different modules
+			// FIXME: Implement support for same keywords inside different resources
 			throw new TypeError("param (" + key + ") already defined at module " + app_params[key].module);
 		}
 		app_params[key] = {
@@ -101,6 +128,12 @@ main.app.use(express.methodOverride());
 main.app.use(function(req, res, next) {
 	req.hostref = config.proto + '://' + ( req.headers && req.headers.host );
 	next();
+});
+
+Object.keys(config.use).forEach(function(key) {
+	var module_name = config.use[key];
+	var module = require(module_name);
+	main.app.use(module(config.opts[key]));
 });
 
 main.app.use(main.app.router);
