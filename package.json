@@ -13,6 +13,15 @@
     "type": "git",
     "url": "git://github.com/Sendanor/nor-sysrestd.git"
   },
+  "dependencies": {
+    "q": "*",
+    "express": "3.3.*",
+    "prettified": "*",
+    "crypt3": "*",
+    "nor-is": "*",
+    "nor-fs": "*",
+    "nor-express": "*"
+  },
   "author": "Jaakko-Heikki Heusala <jheusala@iki.fi>",
   "license": "MIT",
   "bugs": {

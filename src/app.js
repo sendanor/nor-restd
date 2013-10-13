@@ -1,6 +1,4 @@
-j/**
- * Module dependencies.
- */
+/* sysrestd -- The core app code */
 
 var config = {};
 
