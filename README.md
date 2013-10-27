@@ -1,6 +1,5 @@
-nor-sysrestd
-============
+nor-restd
+=========
 
-Sendanor System REST API Service
+This is a daemon and a development server which runs our modular REST API components.
 
-Client side utilities.
