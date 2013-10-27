@@ -142,29 +142,54 @@ function arg_config() {
 /** */
 function arg_start() {
 	daemon.start().once("error", function(error) {
-		console.error("Error: " + error);
+		console.error("[nor-restd] Error: " + util.inspect(error) );
 		process.exit(1);
 	}).once("started", function() {
+		console.log('[nor-restd] started');
 		process.exit();
 	});
 }
 
 /** */
 function arg_stop() {
-	daemon.stop();
+	daemon.stop().once("error", function(error) {
+		console.error("[nor-restd] Error: " + util.inspect(error) );
+		process.exit(1);
+	}).once("stopped", function() {
+		console.log('[nor-restd] stopped');
+		process.exit();
+	});
 }
 
 /** */
 function arg_restart() {
+	var pid = daemon.status();
+	if(pid === 0) {
+		return arg_start();
+	}
+	daemon.stop().once("error", function(error) {
+		console.error("[nor-restd] Error: " + util.inspect(error) );
+		process.exit(1);
+	}).once("stopped", function() {
+		console.log('[nor-restd] stopped');
+		daemon.start().once("error", function(error) {
+			console.error("[nor-restd] Error: " + util.inspect(error) );
+			process.exit(1);
+		}).once("started", function() {
+			console.log('[nor-restd] started');
+			process.exit();
+		});
+	});
 }
 
 /** */
 function arg_reload() {
-
+	arg_restart();
 }
 
 /** */
 function arg_force_reload() {
+	arg_restart();
 }
 
 /** */
@@ -186,10 +211,10 @@ function arg_help() {
 		'  help          print this help',
 		'  config        edit config',
 		'  start         start daemon',
-		'  stop          stop daemon'
-		'  restart       restart daemon'
-		'  reload        reload daemon'
-		'  force-reload  force reload daemon'
+		'  stop          stop daemon',
+		'  restart       restart daemon',
+		'  reload        reload daemon',
+		'  force-reload  force reload daemon',
 		'  status        get daemon status'
 	].join('\n'));
 	return 1;
@@ -215,9 +240,9 @@ if(action === 'config') {
 } else {
 	ret = arg_help();
 }
-if(ret === undefined) {
-	ret = 0;
+
+if(ret !== undefined) {
+	process.exit(ret);
 }
-process.exit(ret);
 
 /* EOF */

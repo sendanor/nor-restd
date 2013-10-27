@@ -127,6 +127,9 @@ var mod = module.exports = function() {
 	/* ENVs will override */
 	parse_envs(config, process.env);
 
+	/** Get user home directory */
+	config.get_home_dir = get_user_home;
+
 	/** Save configurations */
 	config.save = function() {
 		save_to_file(config, userfile);
