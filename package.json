@@ -6,6 +6,9 @@
   "directories": {
     "test": "tests"
   },
+  "bin": {
+    "nor-restd": "./bin/nor-restd"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
