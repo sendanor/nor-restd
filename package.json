@@ -1,7 +1,7 @@
 {
-  "name": "nor-sysrestd",
+  "name": "nor-restd",
   "version": "0.0.1",
-  "description": "Sendanor System REST Service",
+  "description": "Sendanor REST Daemon",
   "main": "src/index.js",
   "directories": {
     "test": "tests"
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/Sendanor/nor-sysrestd.git"
+    "url": "git://github.com/Sendanor/nor-restd.git"
   },
   "dependencies": {
     "q": "*",
@@ -25,6 +25,6 @@
   "author": "Jaakko-Heikki Heusala <jheusala@iki.fi>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Sendanor/nor-sysrestd/issues"
+    "url": "https://github.com/Sendanor/nor-restd/issues"
   }
 }
