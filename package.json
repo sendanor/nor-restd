@@ -1,6 +1,6 @@
 {
   "name": "nor-restd",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Sendanor REST Daemon",
   "main": "src/index.js",
   "directories": {
@@ -20,7 +20,8 @@
     "crypt3": "*",
     "nor-is": "*",
     "nor-fs": "*",
-    "nor-express": "*"
+    "nor-express": "*",
+    "optimist": "*"
   },
   "author": "Jaakko-Heikki Heusala <jheusala@iki.fi>",
   "license": "MIT",

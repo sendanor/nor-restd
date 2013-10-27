@@ -1,0 +1,118 @@
+#!/usr/bin/env node
+/* nor-restd -- The Command Line Interface */
+
+var util = require('util');
+var argv = require('optimist').argv;
+var config = require('../src/config.js')();
+
+/** Handle argument config */
+function arg_config() {
+
+	function arg_config_save() {
+		config.save();
+		console.log('Config saved successfully.');
+	}
+
+	function iterate_obj(obj, fun, prefix) {
+		prefix = prefix || '';
+		Object.keys(obj).forEach(function(key) {
+			var value = obj[key];
+			if(typeof value === 'function') {
+				return;
+			} else if(typeof value === 'object') {
+				iterate_obj(value, fun, prefix + key + '.' );
+			} else {
+				fun(prefix + key, value, obj, key);
+			}
+		});
+	}
+
+	function arg_config_list() {
+		iterate_obj(config, function(key, value) {
+			console.log( key + ' = ' + util.inspect(value) );
+		});
+	}
+
+	function arg_config_get() {
+		var key = argv._.shift();
+		// FIXME: Implement better getter
+		iterate_obj(config, function(k, value) {
+			if(key === k) {
+				console.log( util.inspect(value) );
+			}
+		});
+	}
+
+	function arg_config_set() {
+		var key = argv._.shift();
+		var value = argv._.shift();
+		// FIXME: Implement better setter
+		iterate_obj(config, function(k, v, parent, parent_k) {
+			if(key === k) {
+				parent[parent_k] = value;
+				console.log( 'Set ' + k + ' from ' + util.inspect(v) + ' to ' + util.inspect(value) );
+			}
+		});
+		config.save();
+	}
+
+	function arg_config_delete() {
+		var key = argv._.shift();
+		// FIXME: Implement better setter
+		iterate_obj(config, function(k, v, parent, parent_k) {
+			if(key === k) {
+				delete parent[parent_k];
+				console.log( 'Deleted ' + k );
+			}
+		});
+		config.save();
+	}
+
+	function arg_config_help() {
+		console.error([
+			'USAGE: nor-restd [OPT(s)] config ACTION [PARAM(s)]',
+			'where ACTION is one of:',
+			'  list           list configurations',
+			'  get KEY        get by keyword',
+			'  set KEY VALUE  set value by keyword',
+			'  delete KEY     delete by keyword',
+			'  save           save config'
+		].join('\n'));
+	}
+
+	var action = argv._.shift();
+
+	if(action === 'list') {
+		arg_config_list();
+	} else if(action === 'save') {
+		arg_config_save();
+	} else if(action === 'get') {
+		arg_config_get();
+	} else if(action === 'set') {
+		arg_config_set();
+	} else if(action === 'delete') {
+		arg_config_delete();
+	} else {
+		arg_config_help();
+	}
+	
+}
+
+/** Handle help argument */
+function arg_help() {
+	console.error([
+		'USAGE: nor-restd [OPT(s)] ACTION [PARAM(s)]',
+		'where ACTION is one of:',
+		'  help      print this help',
+		'  config    list/get/set config'
+	].join('\n'));
+}
+
+var action = argv._.shift();
+if(action === 'config') {
+	arg_config();
+} else {
+	arg_help();
+}
+
+/* EOF */

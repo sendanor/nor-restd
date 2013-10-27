@@ -1,6 +1,7 @@
-/* sysrestd -- The core app code */
+/* nor-restd -- The core app code */
 
 var fs = require('nor-fs');
+
 function parse_env(key, def) {
 	key = ''+key;
 	if(typeof process.env[key] === 'undefined') {
@@ -17,34 +18,8 @@ function parse_json_env(key, def) {
 	return JSON.parse(parse_env(key, def));
 }
 
-var config = {
-	'proto': (process.env.PROTO === 'https') ? 'https' : 'http',
-	'host': parse_env('HOST', '127.0.0.1'),
-	'port': parse_env('PORT', 3000),
-    'use': parse_json_env('USE', []),
-	'resources': parse_json_env('RESOURCES', {}),
-    'opts': parse_json_env('OPTS', {})
-};
-
-// FIXME: Implement persistant support for module options
-
-/*
- * config.use example:
- * ----
- * {"auth":"sysrestd-auth-apikey"}
- * ----
- */
-
-/*
- * config.resources example:
- * ----
- * {
- *   "dns": "nor-sysrestd-dns",
- *   "web": "nor-sysrestd-web",
- *   "db": "nor-sysrestd-db"
- * }
- * ----
- */
+// Defaults
+var config = require('./config.js')();
 
 var util = require('util');
 var http = require('http');
@@ -189,7 +164,7 @@ main.app.use(function(err, req, res, next) {
 
 // Setup server
 main.server.listen(main.app.get('port'), main.app.get('host'), function(){
-	console.log('[sysrestd] started on ' + main.app.get('host') + ':' + main.app.get('port'));
+	console.log('[nor-restd#'+process.pid+'] started on ' + main.app.get('host') + ':' + main.app.get('port'));
 });
 
 /* EOF */
