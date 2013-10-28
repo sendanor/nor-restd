@@ -92,14 +92,20 @@ function arg_config() {
 		var key = argv._.shift();
 		var value = argv._.shift();
 
-		var res = fetch_obj(config, key);
-		if(res.path === key) {
-			res.parent[res.child_key] = value;
-			console.log( 'Set ' + key + ' from ' + util.inspect(res.value) + ' to ' + util.inspect(value) );
-			config.save();
-		} else {
-			console.error( "Not found: " + key );
-			return 1;
+		// FIXME: Implement loop detection
+		while(true) {
+			var res = fetch_obj(config, key);
+			if(res.path === key) {
+				res.parent[res.child_key] = value;
+				console.log( 'Set ' + key + ' from ' + util.inspect(res.value) + ' to ' + util.inspect(value) );
+				config.save();
+				break;
+			} else {
+				//util.debug( 'res = ' + util.inspect(res) );
+				//console.error( "Not found: " + key );
+				//return 1;
+				res.parent[res.child_key] = {};
+			}
 		}
 	}
 
