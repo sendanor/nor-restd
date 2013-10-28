@@ -114,7 +114,7 @@ var mod = module.exports = function() {
 		'proto': 'http',
 		'host': '127.0.0.1',
 		'port': 3000,
-	    'use': [],
+	    'use': {},
 		'resources': {},
 	    'opts': {}
 	};

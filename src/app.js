@@ -66,6 +66,10 @@ Object.keys(config.resources).forEach(function(module_key) {
 		mod_instance = mod;
 	}
 	
+	if(is.func(mod_instance)) {
+		mod_instance = {'USE': mod_instance};
+	}
+
 	if(is.obj(mod_instance[':params'])) {
 		params = mod_instance[':params'];
 	} else {
