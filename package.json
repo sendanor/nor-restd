@@ -25,7 +25,7 @@
     "crypt3": "*",
     "nor-is": "*",
     "nor-fs": "*",
-    "nor-express": ">= 0.1.9",
+    "nor-express": ">= 0.1.10",
     "optimist": "*",
     "daemonize2": "*"
   },
