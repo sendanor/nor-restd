@@ -22,7 +22,6 @@
     "q": "*",
     "express": "3.3.*",
     "prettified": "*",
-    "crypt3": "*",
     "nor-is": "*",
     "nor-fs": "*",
     "nor-express": ">= 0.1.10",
