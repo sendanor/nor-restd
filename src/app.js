@@ -59,9 +59,16 @@ main.routes = {
 // Setup routes from 3rd party resources
 Object.keys(config.resources).forEach(function(module_key) {
 	var mod = require( config.resources[module_key] );
+
+	var mod_config = config.opts[module_key] || {};
+	if(!mod_config.url) {
+		// FIXME: url should have protocol, host, port, etc
+		mod_config.url = '/' + module_key;
+	}
+
 	var mod_instance, params, obj;
 	if(is.func(mod)) {
-		mod_instance = mod(config.opts[module_key]);
+		mod_instance = mod(mod_config);
 	} else {
 		mod_instance = mod;
 	}
@@ -113,6 +120,19 @@ Object.keys(config.use).forEach(function(key) {
 	var module_name = config.use[key];
 	var module = require(module_name);
 	main.app.use(module(config.opts[key]));
+});
+
+/** Enable support for HTML viewer */
+main.app.use(function(req, res, next) {
+	if(!(
+	  config && config.resources && config.resources.viewer
+	  && main && main.routes && main.routes.viewer && main.routes.viewer.USE
+	  && (req.accepts('html', 'json') === 'html')
+	  )) {
+		return next();
+	}
+
+	return main.routes.viewer.USE(req, res, next);
 });
 
 main.app.use(main.app.router);
