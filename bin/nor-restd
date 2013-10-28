@@ -24,9 +24,8 @@ function arg_config() {
 
 	/** Iterate through an object and call `fun` for each plain variable -- which is not a function, an array nor object */
 	function iterate_obj(obj, fun, prefix) {
-		prefix = prefix || '';
-		Object.keys(obj).forEach(function(key) {
-			var value = obj[key];
+
+		function itr_something(key, value, obj) {
 			if(typeof value === 'function') {
 				return;
 			} else if(typeof value === 'object') {
@@ -34,7 +33,16 @@ function arg_config() {
 			} else {
 				fun(prefix + key, value, obj, key);
 			}
-		});
+		}
+
+		prefix = prefix || '';
+		if(obj instanceof Array) {
+			for(var i=0; i<obj.length; i=i+1) {
+				itr_something(i, obj[i], obj);
+			}
+		} else {
+			Object.keys(obj).forEach(function(key) { return itr_something(key, obj[key], obj); });
+		}
 	}
 
 	/** Returns an object by keyword which can be 'foo.bar' for `obj.foo.bar`. */

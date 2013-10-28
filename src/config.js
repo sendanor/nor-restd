@@ -103,7 +103,7 @@ function load_file(config, path) {
 
 /** Save config to file synchronously */
 function save_to_file(config, path) {
-	fs.sync.writeFile(path, JSON.stringify(config), {'encoding':'utf8'});
+	fs.sync.writeFile(path, JSON.stringify(config, null, 2)+"\n", {'encoding':'utf8'});
 }
 
 /** Returns the configuration object */
