@@ -112,7 +112,7 @@ main.app.set('port', config.port);
 
 // Setup express middlewares
 
-fs.sync.mkdir(LOG_DIR);
+fs.sync.mkdirIfMissing(LOG_DIR);
 var log_stream = require('fs').createWriteStream(LOG_FILE, {flags: 'a'});
 
 function write_log() {
@@ -203,14 +203,14 @@ main.app.use(function(err, req, res, next) {
 		});
 		res.send(err.code, {'error':''+err.message, 'code':err.code} );
 	} else {
-		prettified.errors.print(err);
+		prettified.errors.print(err, undefined, write_log);
 		res.send(500, {'error':'Internal Server Error','code':500} );
 	}
 });
 
 // Setup secondary error handler if other handlers fail
 main.app.use(function(err, req, res, next) {
-	console.error('Unexpected error: ' + util.inspect(err) );
+	write_log('Unexpected error: ' + util.inspect(err) );
 	res.send(500, {'error':'Unexpected Internal Error', 'code':500} );
 });
 
