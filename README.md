@@ -36,5 +36,22 @@ $ makepasswd --crypt-md5 --chars 8
 PYtrzdBC   $1$F0XGa8w6$4.RWFHXY0QTwh2ZOCnvTB/
 
 $ nor-restd config set opts.auth.keys.demo.secret '$1$F0XGa8w6$4.RWFHXY0QTwh2ZOCnvTB/'
+Set opts.auth.keys.demo.secret from undefined to '$1$F0XGa8w6$4.RWFHXY0QTwh2ZOCnvTB/'
 
+$ nor-restd config set opts.auth.keys.demo.access.read true
+Set opts.auth.keys.demo.access.read from undefined to 'true'
+
+$ nor-restd config set opts.data.host localhost
+Set opts.data.host from undefined to 'localhost'
+
+$ nor-restd config set opts.data.username nor_restd_demo
+Set opts.data.username from undefined to 'nor_restd_demo'
+
+$ nor-restd config set opts.data.database nor_restd_demo
+Set opts.data.database from undefined to 'nor_restd_demo'
+
+$ nor-restd config set opts.data.password 12345678
+Set opts.data.password from undefined to '12345678'
 ```
+
+Then start it: `nor-restd start`

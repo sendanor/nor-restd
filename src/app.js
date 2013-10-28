@@ -21,6 +21,9 @@ function parse_json_env(key, def) {
 // Defaults
 var config = require('./config.js')();
 
+var LOG_DIR = config.get_home_dir() + '/.nor-restd';
+var LOG_FILE = LOG_DIR + '/app.log';
+
 var util = require('util');
 var http = require('http');
 var path = require('path');
@@ -108,7 +111,22 @@ main.app.set('host', config.host);
 main.app.set('port', config.port);
 
 // Setup express middlewares
-main.app.use(express.logger('dev'));
+
+fs.sync.mkdir(LOG_DIR);
+var log_stream = require('fs').createWriteStream(LOG_FILE, {flags: 'a'});
+
+function write_log() {
+	function format(a) {
+		if(typeof a !== "string") {
+			return util.inspect(a);
+		}
+		return a;
+	}
+	var args = Array.prototype.slice.call(arguments);
+	log_stream.write(args.map(format).join(' ') + "\n");
+}
+
+main.app.use(express.logger({stream: log_stream}));
 main.app.use(express.methodOverride());
 
 main.app.use(function(req, res, next) {
@@ -198,7 +216,7 @@ main.app.use(function(err, req, res, next) {
 
 // Setup server
 main.server.listen(main.app.get('port'), main.app.get('host'), function(){
-	console.log('[nor-restd#'+process.pid+'] started on ' + main.app.get('host') + ':' + main.app.get('port'));
+	write_log('[nor-restd#'+process.pid+'] started on ' + main.app.get('host') + ':' + main.app.get('port'));
 });
 
 /* EOF */
