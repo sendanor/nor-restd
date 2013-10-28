@@ -122,23 +122,33 @@ Object.keys(config.use).forEach(function(key) {
 	main.app.use(module(config.opts[key]));
 });
 
-/** Enable support for HTML viewer */
-main.app.use(function(req, res, next) {
-	if(!(
-	  config && config.resources && config.resources.viewer
-	  && main && main.routes && main.routes.viewer && main.routes.viewer.USE
-	  && (req.accepts('html', 'json') === 'html')
-	  )) {
-		return next();
-	}
-
-	return main.routes.viewer.USE(req, res, next);
-});
-
 main.app.use(main.app.router);
 
 // Setup routes automatically
-nor_express.routes.setup(main.app, main.routes);
+nor_express.routes.setup(main.app, main.routes, undefined, {
+	"sender": function(data, req, res, next) {
+
+		util.debug('req.url = ' + util.inspect(req.url) );
+
+		if(!(
+		  config && config.resources && config.resources.viewer
+		  && main && main.routes && main.routes.viewer && main.routes.viewer.USE
+		  && (req.url !== '/viewer')
+		  && (req.url.substr(0, '/viewer/'.length) !== '/viewer/')
+		  && (req.accepts('html', 'json') === 'html')
+		  )) {
+			res.send(data);
+			return;
+		}
+		
+		if(!req.locals) {
+			req.locals = {};
+		}
+		req.locals.body = data;
+		
+		return main.routes.viewer.USE(req, res, next);
+	}
+});
 
 /* Enable regular expressions for validating params */
 main.app.param(function(name, fn){

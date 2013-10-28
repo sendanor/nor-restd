@@ -29,6 +29,10 @@
     "optimist": "*",
     "daemonize2": "*"
   },
+  "optionalDependencies": {
+    "nor-restd-auth-apikey": "*",
+    "nor-restd-viewer": "*"
+  },
   "author": "Jaakko-Heikki Heusala <jheusala@iki.fi>",
   "license": "MIT",
   "bugs": {
