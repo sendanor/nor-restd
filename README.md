@@ -58,4 +58,4 @@ Then start it: `nor-restd start`
 
 Then point your browser to http://demo:PYtrzdBC@localhost:8500/.
 
-Or test with CLI: `curl -H "Accept: application/json" http://demo:PYtrzdBC@dev.jhh.me:8500/`
+Or test with CLI: `curl -H "Accept: application/json" http://demo:PYtrzdBC@localhost:8500/`
