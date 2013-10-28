@@ -146,7 +146,7 @@ main.app.use(main.app.router);
 nor_express.routes.setup(main.app, main.routes, undefined, {
 	"sender": function(data, req, res, next) {
 
-		util.debug('req.url = ' + util.inspect(req.url) );
+		//util.debug('req.url = ' + util.inspect(req.url) );
 
 		if(!(
 		  config && config.resources && config.resources.viewer
