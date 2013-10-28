@@ -21,7 +21,7 @@
   "dependencies": {
     "q": "*",
     "express": "3.3.*",
-    "prettified": "*",
+    "prettified": ">= 0.0.7",
     "nor-is": "*",
     "nor-fs": "*",
     "nor-express": ">= 0.1.10",
