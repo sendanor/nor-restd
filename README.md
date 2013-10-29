@@ -54,6 +54,6 @@ $ nor-restd config set opts.data.password 12345678
 
 Then start it: `nor-restd start`
 
-Then point your browser to http://demo:PYtrzdBC@localhost:8500/.
+Then point your browser to [http://demo:PYtrzdBC@localhost:8500/](http://demo:PYtrzdBC@localhost:8500/).
 
-Or test with CLI: `curl -H "Accept: application/json" http://demo:PYtrzdBC@localhost:8500/`
+Or test it with `curl` on CLI: `curl -H "Accept: application/json" http://demo:PYtrzdBC@localhost:8500/`
