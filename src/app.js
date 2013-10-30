@@ -21,12 +21,12 @@ function parse_json_env(key, def) {
 // Defaults
 var config = require('./config.js')();
 
-var LOG_DIR = config.get_home_dir() + '/.nor-restd';
-var LOG_FILE = LOG_DIR + '/app.log';
+var path = require('path');
+
+var LOG_FILE = path.join(config.get_home_dir(), '.nor-restd', 'app.log');
 
 var util = require('util');
 var http = require('http');
-var path = require('path');
 
 var prettified = require('prettified');
 var express = require('express');
@@ -112,21 +112,9 @@ main.app.set('port', config.port);
 
 // Setup express middlewares
 
-fs.sync.mkdirIfMissing(LOG_DIR);
-var log_stream = require('fs').createWriteStream(LOG_FILE, {flags: 'a'});
+var logger = require('./logger.js')({'file':LOG_FILE});
 
-function write_log() {
-	function format(a) {
-		if(typeof a !== "string") {
-			return util.inspect(a);
-		}
-		return a;
-	}
-	var args = Array.prototype.slice.call(arguments);
-	log_stream.write(args.map(format).join(' ') + "\n");
-}
-
-main.app.use(express.logger({stream: log_stream}));
+main.app.use(express.logger({stream: logger.stream}));
 main.app.use(express.methodOverride());
 
 main.app.use(function(req, res, next) {
@@ -203,20 +191,20 @@ main.app.use(function(err, req, res, next) {
 		});
 		res.send(err.code, {'error':''+err.message, 'code':err.code} );
 	} else {
-		prettified.errors.print(err, undefined, write_log);
+		prettified.errors.print(err, undefined, logger.error.bind(logger) );
 		res.send(500, {'error':'Internal Server Error','code':500} );
 	}
 });
 
 // Setup secondary error handler if other handlers fail
 main.app.use(function(err, req, res, next) {
-	write_log('Unexpected error: ' + util.inspect(err) );
+	logger.error('Unexpected error: ' + util.inspect(err) );
 	res.send(500, {'error':'Unexpected Internal Error', 'code':500} );
 });
 
 // Setup server
 main.server.listen(main.app.get('port'), main.app.get('host'), function(){
-	write_log('[nor-restd#'+process.pid+'] started on ' + main.app.get('host') + ':' + main.app.get('port'));
+	logger.log('[nor-restd#'+process.pid+'] started on ' + main.app.get('host') + ':' + main.app.get('port'));
 });
 
 /* EOF */
