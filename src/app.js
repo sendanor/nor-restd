@@ -39,7 +39,7 @@ resource_keys.map(helpers.load_module(config)).forEach(function(mod) {
 		};
 	});
 
-	routes[mod.key] = mod_routes;
+	routes[mod.key] = mod.routes;
 
 });
 

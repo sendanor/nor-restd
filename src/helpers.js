@@ -40,6 +40,8 @@ function not_value(value) {
  *                        `resources` and `opts`.
  */
 helpers.load_module = function(config) {
+	var is = require('nor-is');
+
 	var f = function(module_key) {
 
 		// First we load the generic module object

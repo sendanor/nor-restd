@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* nor-restd -- The Command Line Interface */
 
+var fs = require('nor-fs');
 var util = require('util');
 var argv = require('optimist').argv;
 var config = require('../src/config.js')();
@@ -153,6 +154,7 @@ function arg_config() {
 	
 }
 
+
 /** */
 function arg_start() {
 	daemon.start().once("error", function(error) {
@@ -217,6 +219,14 @@ function arg_status() {
 	}
 }
 
+function arg_version() {
+	var info = JSON.parse(fs.sync.readFile(__dirname + '/../package.json', {"encoding": "utf8"}));
+	console.log([
+		'restd ' + info.version,
+	].join('\n'));
+	return 1;
+}
+
 /** Handle help argument */
 function arg_help() {
 	console.error([
@@ -229,7 +239,8 @@ function arg_help() {
 		'  restart       restart daemon',
 		'  reload        reload daemon',
 		'  force-reload  force reload daemon',
-		'  status        get daemon status'
+		'  status        get daemon status',
+		'  version       get restd version'
 	].join('\n'));
 	return 1;
 }
@@ -251,6 +262,8 @@ if(action === 'config') {
 	ret = arg_force_reload();
 } else if(action === 'status') {
 	ret = arg_status();
+} else if(action === 'version') {
+	ret = arg_version();
 } else {
 	ret = arg_help();
 }
