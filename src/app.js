@@ -66,28 +66,7 @@ app.use(app.router);
 
 // Setup routes automatically
 nor_express.routes.setup(app, routes, undefined, {
-	"sender": function(data, req, res, next) {
-
-		//util.debug('req.url = ' + util.inspect(req.url) );
-
-		if(!(
-		  config && config.resources && config.resources.viewer
-		  && routes && routes.viewer && routes.viewer.USE
-		  && (req.url !== '/viewer')
-		  && (req.url.substr(0, '/viewer/'.length) !== '/viewer/')
-		  && (req.accepts('html', 'json') === 'html')
-		  )) {
-			res.send(data);
-			return;
-		}
-		
-		if(!req.locals) {
-			req.locals = {};
-		}
-		req.locals.body = data;
-		
-		return routes.viewer.USE(req, res, next);
-	}
+	"sender": helpers.viewer_handler({resources:config.resources, routes:routes})
 });
 
 /* Enable regular expressions for validating params */

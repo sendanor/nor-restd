@@ -81,7 +81,39 @@ helpers.load_module = function(config) {
 		};
 
 		return ret;
-	}
+	};
+	return f;
+};
+
+/** Returns a `function(data, req, res, next)` which handles sending data by 
+ * using viewer plugin or sending it directly.
+ */
+helpers.viewer_handler = function(opts) {
+	var f = function(data, req, res, next) {
+
+		//util.debug('req.url = ' + util.inspect(req.url) );
+
+		// If there is no viewer or request doesn't accept html, just send the data.
+		if(!(
+		  opts && opts.resources && opts.resources.viewer
+		  && opts && opts.routes.viewer && opts.routes.viewer.USE
+		  && (req.url !== '/viewer')
+		  && (req.url.substr(0, '/viewer/'.length) !== '/viewer/')
+		  && (req.accepts('html', 'json') === 'html')
+		  )) {
+			res.send(data);
+			return;
+		}
+		
+		// Setup req.locals if missing
+		if(!req.locals) {
+			req.locals = {};
+		}
+		req.locals.body = data;
+		
+		// Use the viewer plugin
+		return opts.routes.viewer.USE(req, res, next);
+	};
 	return f;
 };
 
