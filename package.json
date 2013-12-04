@@ -10,8 +10,8 @@
     "nor-restd": "./bin/nor-restd"
   },
   "scripts": {
-    "start": "bin/nor-restd start",
-    "stop": "bin/nor-restd stop",
+    "start": "./bin/nor-restd start",
+    "stop": "./bin/nor-restd stop",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
