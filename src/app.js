@@ -70,50 +70,16 @@ nor_express.routes.setup(app, routes, undefined, {
 });
 
 /* Enable regular expressions for validating params */
-app.param(function(name, fn){
-	if (fn instanceof RegExp) {
-		return function(req, res, next, val){
-			var captures;
-			//console.error('DEBUG: at app.param(name=' + JSON.stringify(name)+', fn) val = ' + JSON.stringify(val) );
-			if (captures = fn.exec(String(val))) {
-				//console.error('DEBUG: at app.param(name=' + JSON.stringify(name)+', fn) got captures=' + JSON.stringify(captures) );
-				req.params[name] = (captures.length === 1) ? captures.shift() : captures;
-				next();
-			} else {
-				next('route');
-			}
-		};
-	}
-});
+app.param(helpers.enable_regexp_params());
 
 // Setup named params in routes
 Object.keys(app_params).forEach(function(key) {
 	app.param(key, app_params[key].value);
 });
 
-// Default handler for requests
-app.use(function(req, res, next) {
-	throw new HTTPError(404, "Not Found");
-});
-
-// Setup primary error handler
-app.use(function(err, req, res, next) {
-	if(err instanceof HTTPError) {
-		Object.keys(err.headers).forEach(function(key) {
-			res.header(key, err.headers[key]);
-		});
-		res.send(err.code, {'error':''+err.message, 'code':err.code} );
-	} else {
-		prettified.errors.print(err, undefined, logger.error.bind(logger) );
-		res.send(500, {'error':'Internal Server Error','code':500} );
-	}
-});
-
-// Setup secondary error handler if other handlers fail
-app.use(function(err, req, res, next) {
-	logger.error('Unexpected error: ' + util.inspect(err) );
-	res.send(500, {'error':'Unexpected Internal Error', 'code':500} );
-});
+app.use(helpers.defaultHandler());      // Default handler for requests
+app.use(helpers.errorHandler());        // Primary error handlers
+app.use(helpers.simpleErrorHandler());  // Secondary backup error handler
 
 // Setup server
 server.listen(app.get('port'), app.get('host'), function(){

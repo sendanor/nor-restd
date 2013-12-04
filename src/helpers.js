@@ -1,4 +1,7 @@
 /** Helpers */
+var nor_express = require('nor-express');
+var HTTPError = nor_express.HTTPError;
+
 var helpers = module.exports = {};
 
 /** Sets `req.hostref` based on `req.headers.host` and it will read protocol 
@@ -113,6 +116,69 @@ helpers.viewer_handler = function(opts) {
 		
 		// Use the viewer plugin
 		return opts.routes.viewer.USE(req, res, next);
+	};
+	return f;
+};
+
+/** Returns a function that can be used to enable support for RegExp based 
+ * patterns in Express params.
+ */
+helpers.enable_regexp_params = function(opts) {
+	var f = function(name, fn){
+		if (fn instanceof RegExp) {
+			return function(req, res, next, val){
+				var captures;
+				//console.error('DEBUG: at app.param(name=' + JSON.stringify(name)+', fn) val = ' + JSON.stringify(val) );
+				if (captures = fn.exec(String(val))) {
+					//console.error('DEBUG: at app.param(name=' + JSON.stringify(name)+', fn) got captures=' + JSON.stringify(captures) );
+					req.params[name] = (captures.length === 1) ? captures.shift() : captures;
+					next();
+				} else {
+					next('route');
+				}
+			};
+		}
+	};
+	return f;
+};
+
+/** */
+helpers.defaultHandler = function(opts) {
+	var f = function(req, res, next) {
+		throw new HTTPError(404, "Not Found");
+	};
+	return f;
+};
+
+/** Returns a function which is a JSON based Express error handler for HTTP 
+ * errors, which means it should be the primary error handler and do all the 
+ * things an error handler should normally do when the system is operating 
+ * normally. You can use features that might fail but of course you should try 
+ * to implement it as robust as possible. Any errors here should be catched 
+ * with `helpers.simpleErrorHandler`.
+ */
+helpers.errorHandler = function() {
+	var f = function(err, req, res, next) {
+		if(err instanceof HTTPError) {
+			Object.keys(err.headers).forEach(function(key) {
+				res.header(key, err.headers[key]);
+			});
+			res.send(err.code, {'error':''+err.message, 'code':err.code} );
+		} else {
+			prettified.errors.print(err, undefined, logger.error.bind(logger) );
+			res.send(500, {'error':'Internal Server Error','code':500} );
+		}
+	};
+	return f;
+};
+
+/** Simple minimalistic error handler which should never fail and should catch
+ * any errors the primary error handler cannot handle.
+ */
+helpers.simpleErrorHandler = function() {
+	var f = function(err, req, res, next) {
+		logger.error('Unexpected error: ' + util.inspect(err) );
+		res.send(500, {'error':'Unexpected Internal Error', 'code':500} );
 	};
 	return f;
 };
